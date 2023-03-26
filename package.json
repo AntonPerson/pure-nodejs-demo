@@ -4,6 +4,8 @@
   "description": "A vanilla node project with typescript",
   "main": "src/index.js",
   "scripts": {
+    "build:version": "ts-node build/version.ts",
+    "prestart": "npm run build:version",
     "start": "ts-node src/index.ts",
     "test": "vitest",
     "coverage": "vitest run --coverage"

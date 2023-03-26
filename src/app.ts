@@ -1,3 +1,5 @@
+import VERSION from "./version.generated.json";
+
 type ApiRequest = {
   method?: "GET" | "POST" | "PUT" | "DELETE";
 };
@@ -27,13 +29,18 @@ export const app: { [apiPath: string]: ApiRoute } = {
 
   /**
    * Node version route
-   * @returns the Node.js version as a response object with an optional status code, headers, and a message
+   * @returns response object with an optional status code, headers and a message of the following shape:
+   *    - node: Node.js version
+   *    - branch: Git branch
+   *    - commitHash: Last commit hast
+   *    - commitTimestamp: Last commit timestamp
+   *    - startTimestamp: Server start timestamp
    */
   version() {
     return {
-      headers: { "Content-Type": "text/plain" },
       message: {
         node: process.versions.node,
+        ...VERSION,
       },
     };
   },
