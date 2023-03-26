@@ -27,7 +27,11 @@ const requestListener: http.RequestListener<
     );
     // Body of the response
     if (result.message) {
-      res.write(result.message);
+      res.write(
+        typeof result.message === "string"
+          ? result.message
+          : JSON.stringify(result.message)
+      );
     }
     // End and send the response
     res.end();

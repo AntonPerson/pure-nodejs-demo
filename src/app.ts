@@ -5,7 +5,7 @@ type ApiRequest = {
 type ApiResponse = {
   status?: number;
   headers?: Record<string, string>;
-  message?: string;
+  message?: string | Record<string, unknown>;
 };
 
 type ApiRoute = (req?: ApiRequest) => ApiResponse;
@@ -22,6 +22,19 @@ export const app: { [apiPath: string]: ApiRoute } = {
     return {
       headers: { "Content-Type": "text/plain" },
       message: "pong!",
+    };
+  },
+
+  /**
+   * Node version route
+   * @returns the Node.js version as a response object with an optional status code, headers, and a message
+   */
+  version() {
+    return {
+      headers: { "Content-Type": "text/plain" },
+      message: {
+        node: process.versions.node,
+      },
     };
   },
 };
