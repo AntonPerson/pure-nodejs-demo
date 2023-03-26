@@ -1,0 +1,14 @@
+{
+  "name": "typescript-node-vanilla",
+  "version": "1.0.0",
+  "description": "A vanilla node project with typescript",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.10",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.2"
+  }
+}
