@@ -1,30 +1,7 @@
 import http from "node:http";
+import { app } from "./app";
 
 const PORT = process.env.PORT || 8040;
-
-type ApiRequest = {
-  method: string;
-};
-
-type ApiResponse = {
-  status?: number;
-  headers?: http.OutgoingHttpHeaders;
-  message: string;
-};
-
-type ApiRoute = (req: ApiRequest) => ApiResponse;
-
-/**
- * The application logic. Routes are defined here as functions.
- */
-const app: { [apiPath: string]: ApiRoute } = {
-  ping() {
-    return {
-      headers: { "Content-Type": "text/plain" },
-      message: "pong!",
-    };
-  },
-};
 
 /**
  * Create a request listener to handle requests.
@@ -37,17 +14,21 @@ const requestListener: http.RequestListener<
   typeof http.IncomingMessage,
   typeof http.ServerResponse
 > = (req, res) => {
-  const apiPath = req.url?.split("/")[1];
+  const route = req.url?.split("/")[1];
 
-  if (apiPath && app[apiPath] && req.method === "GET") {
-    const result = app[apiPath]({ method: req.method });
+  if (route && app[route] && req.method === "GET") {
+    // Call the route function and get the response
+    const result = app[route]({ method: req.method });
+
     // Headers and status
     res.writeHead(
       result.status || 200,
       result.headers || { "Content-Type": "application/json" }
     );
     // Body of the response
-    res.write(result.message);
+    if (result.message) {
+      res.write(result.message);
+    }
     // End and send the response
     res.end();
   } else {
