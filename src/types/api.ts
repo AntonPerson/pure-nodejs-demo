@@ -1,4 +1,4 @@
-export type ApiRequest<Q = Record<string, string | string[] | undefined>> = {
+export type ApiRequest<Q = any> = {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   query?: Q;
 };
