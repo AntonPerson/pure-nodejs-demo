@@ -36,6 +36,15 @@ export type Post = {
   body: string;
 };
 
+/**
+ * Fetches and aggregates user and post data from external APIs.
+ *
+ * @param route - The API route for the current request.
+ * @param getUserId - A function to extract the user ID from the API request.
+ * @param urlUsers - The URL of the external API to fetch user data.
+ * @param urlPosts - The URL of the external API to fetch post data.
+ * @returns A function that accepts an optional API request and returns a Promise of ApiResponse.
+ */
 export function fetchAndAggregate(
   route: string,
   getUserId: (req?: ApiRequest) => number,
@@ -43,7 +52,9 @@ export function fetchAndAggregate(
   urlPosts: string
 ) {
   return async (req?: ApiRequest): Promise<ApiResponse> => {
+    // Get the user ID from the API request
     const userId = getUserId(req);
+    // Validate the user ID
     if (userId === undefined || Number.isNaN(userId)) {
       return {
         status: 400,
@@ -63,11 +74,13 @@ export function fetchAndAggregate(
       fetchData<Post[]>(urlPosts),
     ]);
 
+    // Check if the promises have been fulfilled and assign the values
     const allUsers =
       results[0].status === "fulfilled" ? results[0].value : null;
     const allPosts =
       results[1].status === "fulfilled" ? results[1].value : null;
 
+    // Validate the fetched data
     if (!Array.isArray(allUsers) || !Array.isArray(allPosts)) {
       return handleExternalError({
         route,
@@ -86,11 +99,13 @@ export function fetchAndAggregate(
       );
     }
 
+    // Find the requested user and their posts
     const user = allUsers.find((user) => user.id === userId);
     const posts = allPosts
       .filter((post) => post.userId === userId)
       .map((post) => ({ ...post, userId: undefined }));
 
+    // Check if the user was found
     if (!user) {
       return {
         status: 404,
@@ -101,6 +116,8 @@ export function fetchAndAggregate(
         },
       };
     }
+
+    // Return the aggregated user and posts data
     return {
       message: {
         type: "AGGREGATION",
