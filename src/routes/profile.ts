@@ -23,9 +23,9 @@ export function fetchAndAggregate(
     if (userId === undefined || Number.isNaN(userId)) {
       return {
         status: 400,
-        message: {
+        body: {
           type: "ERROR",
-          error: "Invalid query parameters.",
+          message: "Invalid query parameters.",
           solution:
             "Need something like ?userId=1, " +
             "where userId is the id of the user to fetch.",
@@ -74,9 +74,9 @@ export function fetchAndAggregate(
     if (!user) {
       return {
         status: 404,
-        message: {
+        body: {
           type: "ERROR",
-          error: "User not found",
+          message: "User not found",
           solution: "Try a different userId",
         },
       };
@@ -84,7 +84,7 @@ export function fetchAndAggregate(
 
     // Return the aggregated user and posts data
     return {
-      message: {
+      body: {
         type: "AGGREGATION",
         user,
         posts,

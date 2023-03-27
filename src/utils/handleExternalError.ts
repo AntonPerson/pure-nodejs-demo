@@ -14,6 +14,7 @@ export type GenericError = {
   port?: string;
   status?: number;
 
+  solution?: string;
   extra?: Record<string, unknown>;
 };
 
@@ -61,6 +62,9 @@ export function serializeErrorForLog(error: Error): GenericError {
   }
 
   // Additonal properties
+  if (err.solution) {
+    serializedError.solution = err.solution;
+  }
   if (err.extra) {
     serializedError.extra = err.extra;
   }
@@ -91,18 +95,28 @@ export function handleExternalError(errorExtension: ErrorExtension) {
   return <E extends Error>(error: E) => {
     const { status, ...serializedError } = {
       type: "ERROR",
-      error: "External API error.",
       ...errorExtension,
       ...serializeErrorForLog(error),
     };
     console.error(JSON.stringify(serializedError, null, 2), ",");
 
     if (process.env.NODE_ENV === "production") {
+      if (serializedError.name === "ValidationError") {
+        return {
+          status: status || 400,
+          body: {
+            type: "ERROR",
+            message: serializedError.message,
+            solution: serializedError.solution,
+            errorId: serializedError.errorId,
+          },
+        };
+      }
       return {
         status: status || 500,
-        message: {
+        body: {
           type: "ERROR",
-          error: `Failed to fetch data from external API. (${serializedError.name})`,
+          message: `${serializedError.name}: Failed to fetch data from external API.`,
           solution: `Try again later or contact support. (Error ID: ${serializedError.errorId})`,
           errorId: serializedError.errorId,
         },
@@ -111,7 +125,7 @@ export function handleExternalError(errorExtension: ErrorExtension) {
 
     return {
       status: status || 500,
-      message: serializedError,
+      body: serializedError,
     };
   };
 }

@@ -24,9 +24,9 @@ export function fetchAndPaginate(route: string, url: string): ApiRoute {
     if (Number.isNaN(size) || Number.isNaN(offset) || size < 1 || offset < 0) {
       return {
         status: 400,
-        message: {
+        body: {
           type: "ERROR",
-          error: "Invalid query parameters.",
+          message: "Invalid query parameters.",
           solution:
             "Need something like ?size=10&offset=0, " +
             "where offset is the page number " +

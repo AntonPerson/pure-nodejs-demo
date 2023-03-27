@@ -31,9 +31,9 @@ describe("images", async () => {
     const result = await images({ query: { size: "invalid" } });
     expect(result).toEqual({
       status: 400,
-      message: {
+      body: {
         type: "ERROR",
-        error: "Invalid query parameters.",
+        message: "Invalid query parameters.",
         solution: expect.any(String),
       },
     });
@@ -43,9 +43,9 @@ describe("images", async () => {
     const result = await images({ query: { offset: "invalid" } });
     expect(result).toEqual({
       status: 400,
-      message: {
+      body: {
         type: "ERROR",
-        error: "Invalid query parameters.",
+        message: "Invalid query parameters.",
         solution: expect.any(String),
       },
     });
@@ -60,7 +60,7 @@ describe("images", async () => {
 
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
-      message: {
+      body: {
         type: "PAGINATION",
         data: [
           {
@@ -92,7 +92,7 @@ describe("images", async () => {
 
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
-      message: {
+      body: {
         type: "PAGINATION",
         data: mockImages.slice(0, 10),
         remaining: 10,
@@ -110,7 +110,7 @@ describe("images", async () => {
 
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
-      message: {
+      body: {
         type: "PAGINATION",
         data: { foo: "bar" },
         remaining: 0,
@@ -128,7 +128,7 @@ describe("images", async () => {
 
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
-      message: {
+      body: {
         type: "PAGINATION",
         data: mockImages.slice(0, 10),
         remaining: 10,
@@ -162,10 +162,10 @@ describe("images", async () => {
 
     expect(result).toEqual({
       status: 500,
-      message: {
+      body: {
         // In production mode the response only shows error name, errorId and solution, no internals like stack.
         type: "ERROR",
-        error: "Failed to fetch data from external API. (Error)",
+        message: "Error: Failed to fetch data from external API.",
         solution: expect.stringContaining(
           "Try again later or contact support."
         ),
@@ -190,18 +190,17 @@ describe("images", async () => {
       error: "Error: Something went wrong",
       url: "https://jsonplaceholder.typicode.com/photos",
     });
-    expect(result, "api response").toEqual({
-      status: 500,
-      message: expect.objectContaining({
-        message: "Failed to fetch data from external API.",
-        // In development mode the response shows the real error.
-        extra: {
-          images: {
-            error: "Error: Something went wrong",
-            url: "https://jsonplaceholder.typicode.com/photos",
-          },
-        },
-      }),
+    expect(result.status, "api status").toBe(500);
+    expect(result.body, "api response").toContain({
+      type: "ERROR",
+      message: "Failed to fetch data from external API.",
+    });
+    // In development mode the response shows the real error.
+    expect((result.body as { extra: unknown })?.extra, "extra").toEqual({
+      images: {
+        error: "Error: Something went wrong",
+        url: "https://jsonplaceholder.typicode.com/photos",
+      },
     });
   });
 });

@@ -37,7 +37,7 @@ export function paginate<T>(
   size: number,
   offset: number
 ): {
-  message: {
+  body: {
     type: "PAGINATION";
     data: T[] | Record<string, unknown>;
     remaining: number;
@@ -52,5 +52,5 @@ export function paginate<T>(
     (Array.isArray(extracted) ? extracted.length : 0) - (offset * size + size)
   );
 
-  return { message: { type: "PAGINATION", data, remaining } };
+  return { body: { type: "PAGINATION", data, remaining } };
 }

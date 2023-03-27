@@ -15,7 +15,7 @@ export const app: { [apiPath: string]: ApiRoute } = {
   ping() {
     return Promise.resolve({
       headers: { "Content-Type": "text/plain" },
-      message: "pong!",
+      body: "pong!",
     });
   },
 
@@ -30,7 +30,7 @@ export const app: { [apiPath: string]: ApiRoute } = {
    */
   version() {
     return Promise.resolve({
-      message: {
+      body: {
         node: process.versions.node,
         ...VERSION,
       },

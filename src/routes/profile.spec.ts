@@ -123,7 +123,7 @@ describe("profile", () => {
 
       expect(fetchData).toHaveBeenCalled();
       expect(result).toEqual({
-        message: {
+        body: {
           type: "AGGREGATION",
           user: mockUsers[1],
           posts: [
@@ -161,7 +161,6 @@ describe("profile", () => {
 
       const expectedError = expect.objectContaining({
         type: "ERROR",
-        error: "External API error.",
         message: "Failed to fetch data from external API.",
         extra: {
           users: {
@@ -178,7 +177,7 @@ describe("profile", () => {
       expect(fetchData).toHaveBeenCalled();
       expect(result).toEqual({
         status: 500,
-        message: expectedError,
+        body: expectedError,
       });
       const errorLogEntry = JSON.parse(errorLog.mock.calls[0][0]);
       expect(errorLogEntry).toEqual(expectedError);
@@ -195,9 +194,9 @@ describe("profile", () => {
       const result = await fetchAndAggregateTest();
       expect(result).toEqual({
         status: 404,
-        message: {
+        body: {
           type: "ERROR",
-          error: "User not found",
+          message: "User not found",
           solution: "Try a different userId",
         },
       });
@@ -214,9 +213,9 @@ describe("profile", () => {
       const result = await fetchAndAggregateTest();
       expect(result).toEqual({
         status: 400,
-        message: {
+        body: {
           type: "ERROR",
-          error: "Invalid query parameters.",
+          message: "Invalid query parameters.",
           solution:
             "Need something like ?userId=1, " +
             "where userId is the id of the user to fetch.",
