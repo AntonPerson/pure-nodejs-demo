@@ -143,17 +143,22 @@ describe("images", async () => {
     process.env.NODE_ENV = "production";
     const result = await images();
 
-    expect(errorLog).toHaveBeenCalledWith(
-      expect.stringContaining("Error"),
-      // The internal error log always shows the real error message.
-      "Something went wrong"
+    const errorLogEntry = errorLog.mock.calls[0][0];
+    expect(JSON.parse(errorLogEntry), "log").toEqual(
+      expect.objectContaining({
+        type: "ERROR",
+        message: "Something went wrong",
+        errorId: expect.any(String),
+      })
     );
+
     expect(result).toEqual({
       status: 500,
       message: {
-        // In production mode the response does not show the real error message.
-        error: "Internal server error",
+        // In production mode the response only shows errorId and solution, no real error.
+        type: "ERROR",
         solution: expect.any(String),
+        errorId: expect.any(String),
       },
     });
   });
@@ -164,18 +169,20 @@ describe("images", async () => {
 
     const result = await images();
 
-    expect(errorLog).toHaveBeenCalledWith(
-      expect.stringContaining("Error"),
-      // The internal error log always shows the real error message.
-      "Something went wrong"
+    const errorLogEntry = errorLog.mock.calls[0][0];
+    expect(JSON.parse(errorLogEntry), "log").toEqual(
+      expect.objectContaining({
+        type: "ERROR",
+        message: "Something went wrong",
+        errorId: expect.any(String),
+      })
     );
-    expect(result).toEqual({
+    expect(result, "api response").toEqual({
       status: 500,
-      message: {
-        // In development mode the response shows the real error message.
-        error: expect.stringContaining("Something went wrong"),
-        solution: expect.any(String),
-      },
+      message: expect.objectContaining({
+        // In development mode the response shows the real error.
+        message: "Something went wrong",
+      }),
     });
   });
 });
