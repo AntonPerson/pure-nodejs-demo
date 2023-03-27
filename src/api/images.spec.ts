@@ -32,6 +32,7 @@ describe("images", async () => {
     expect(result).toEqual({
       status: 400,
       message: {
+        type: "ERROR",
         error: "Invalid query parameters.",
         solution: expect.any(String),
       },
@@ -43,6 +44,7 @@ describe("images", async () => {
     expect(result).toEqual({
       status: 400,
       message: {
+        type: "ERROR",
         error: "Invalid query parameters.",
         solution: expect.any(String),
       },
@@ -59,6 +61,7 @@ describe("images", async () => {
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
       message: {
+        type: "PAGINATION",
         data: [
           {
             albumId: 1,
@@ -90,6 +93,7 @@ describe("images", async () => {
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
       message: {
+        type: "PAGINATION",
         data: mockImages.slice(0, 10),
         remaining: 10,
       },
@@ -107,6 +111,7 @@ describe("images", async () => {
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
       message: {
+        type: "PAGINATION",
         data: { foo: "bar" },
         remaining: 0,
       },
@@ -124,6 +129,7 @@ describe("images", async () => {
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
       message: {
+        type: "PAGINATION",
         data: mockImages.slice(0, 10),
         remaining: 10,
       },
@@ -143,17 +149,25 @@ describe("images", async () => {
     process.env.NODE_ENV = "production";
     const result = await images();
 
-    expect(errorLog).toHaveBeenCalledWith(
-      expect.stringContaining("Error"),
-      // The internal error log always shows the real error message.
-      "Something went wrong"
+    const errorLogEntry = errorLog.mock.calls[0][0];
+    expect(JSON.parse(errorLogEntry), "log").toEqual(
+      expect.objectContaining({
+        type: "ERROR",
+        message: "Something went wrong",
+        errorId: expect.any(String),
+      })
     );
+
     expect(result).toEqual({
       status: 500,
       message: {
-        // In production mode the response does not show the real error message.
-        error: "Internal server error",
-        solution: expect.any(String),
+        // In production mode the response only shows error name, errorId and solution, no internals like stack.
+        type: "ERROR",
+        error: "Failed to fetch data from external API. (Error)",
+        solution: expect.stringContaining(
+          "Try again later or contact support."
+        ),
+        errorId: expect.any(String),
       },
     });
   });
@@ -164,18 +178,20 @@ describe("images", async () => {
 
     const result = await images();
 
-    expect(errorLog).toHaveBeenCalledWith(
-      expect.stringContaining("Error"),
-      // The internal error log always shows the real error message.
-      "Something went wrong"
+    const errorLogEntry = errorLog.mock.calls[0][0];
+    expect(JSON.parse(errorLogEntry), "log").toEqual(
+      expect.objectContaining({
+        type: "ERROR",
+        message: "Something went wrong",
+        errorId: expect.any(String),
+      })
     );
-    expect(result).toEqual({
+    expect(result, "api response").toEqual({
       status: 500,
-      message: {
-        // In development mode the response shows the real error message.
-        error: expect.stringContaining("Something went wrong"),
-        solution: expect.any(String),
-      },
+      message: expect.objectContaining({
+        // In development mode the response shows the real error.
+        message: "Something went wrong",
+      }),
     });
   });
 });

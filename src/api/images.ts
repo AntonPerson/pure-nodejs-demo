@@ -1,6 +1,9 @@
 import type { ApiRequest, ApiResponse, ApiRoute } from "../types";
 import { paginate, fetchData } from "../utils";
-import { handleExternalError } from "../utils/handleExternalError";
+import {
+  ExternalApiError,
+  handleExternalError,
+} from "../utils/handleExternalError";
 
 /**
  * The Image type defines the structure of the image object fetched from an external API.
@@ -33,6 +36,7 @@ export function fetchAndPaginate(route: string, url: string): ApiRoute {
       return {
         status: 400,
         message: {
+          type: "ERROR",
           error: "Invalid query parameters.",
           solution:
             "Need something like ?size=10&offset=0, " +
@@ -49,10 +53,17 @@ export function fetchAndPaginate(route: string, url: string): ApiRoute {
       return paginate(allData, size, offset);
     } catch (error) {
       // Handle the external error by logging it and returning a 500 status code
-      return handleExternalError(
-        // The error log message
-        `| route: ${route}?offset=${offset}&size=${size} | external: ${url}`
-      )(error as Error);
+      return handleExternalError({
+        route,
+        params: { offset, size },
+      })(
+        new ExternalApiError("Failed to fetch data from external API.", {
+          images: {
+            error: (error as Error).toString(),
+            url,
+          },
+        })
+      );
     }
   };
 }
