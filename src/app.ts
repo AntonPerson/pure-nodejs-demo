@@ -2,6 +2,7 @@ import VERSION from "./version.generated.json";
 import type { ApiRoute } from "./types";
 
 import { images } from "./api/images";
+import { profile, Nicholas } from "./api/profile";
 
 /**
  * The application logic. Routes are defined here as functions.
@@ -37,4 +38,7 @@ export const app: { [apiPath: string]: ApiRoute } = {
   },
 
   images,
+
+  profile,
+  Nicholas,
 };
