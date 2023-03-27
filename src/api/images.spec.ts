@@ -96,7 +96,39 @@ describe("images", async () => {
     });
   });
 
-  it("should just return the object unchanged if ");
+  it("should just return the response unchanged if the response is not an array", async () => {
+    vi.mocked(fetchData).mockResolvedValue({ foo: "bar" });
+    const result = await images();
+
+    // First we make sure that we are not accidentally returning the real data
+    expect(vi.isMockFunction(fetchData)).toBeTruthy();
+    expect(fetchData).toHaveBeenCalled();
+
+    // Then we make sure that the function returns the correct data
+    expect(result).toEqual({
+      message: {
+        data: { foo: "bar" },
+        remaining: 0,
+      },
+    });
+  });
+
+  it("should be able to extract an array if it is wrapped in an object", async () => {
+    vi.mocked(fetchData).mockResolvedValue({ data: mockImages });
+    const result = await images();
+
+    // First we make sure that we are not accidentally returning the real data
+    expect(vi.isMockFunction(fetchData)).toBeTruthy();
+    expect(fetchData).toHaveBeenCalled();
+
+    // Then we make sure that the function returns the correct data
+    expect(result).toEqual({
+      message: {
+        data: mockImages.slice(0, 10),
+        remaining: 10,
+      },
+    });
+  });
 
   // Make sure that the NODE_ENV variable is reset to "test" after each test to avoid side effects
   afterEach(() => {
