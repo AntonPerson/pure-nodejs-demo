@@ -144,6 +144,8 @@ describe("profile", () => {
 
     it("returns 500 when API call fails", async () => {
       vi.mocked(fetchData).mockRejectedValue(new Error("Something went wrong"));
+      // We need to mock console.error to avoid the error message from being logged to the console
+      const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const fetchAndAggregateTest = fetchAndAggregate(
         "/test",
@@ -157,25 +159,29 @@ describe("profile", () => {
 
       const result = await fetchAndAggregateTest();
 
+      const expectedError = expect.objectContaining({
+        type: "ERROR",
+        error: "External API error.",
+        message: "Failed to fetch data from external API.",
+        extra: {
+          users: {
+            url: "https://jsonplaceholder.typicode.com/users",
+            error: "Error: Something went wrong",
+          },
+          posts: {
+            url: "https://jsonplaceholder.typicode.com/posts",
+            error: "Error: Something went wrong",
+          },
+        },
+      });
+
       expect(fetchData).toHaveBeenCalled();
       expect(result).toEqual({
         status: 500,
-        message: expect.objectContaining({
-          type: "ERROR",
-          error: "External API error.",
-          message: "Failed to fetch data from external API.",
-          extra: {
-            users: {
-              url: "https://jsonplaceholder.typicode.com/users",
-              error: "Error: Something went wrong",
-            },
-            posts: {
-              url: "https://jsonplaceholder.typicode.com/posts",
-              error: "Error: Something went wrong",
-            },
-          },
-        }),
+        message: expectedError,
       });
+      const errorLogEntry = JSON.parse(errorLog.mock.calls[0][0]);
+      expect(errorLogEntry).toEqual(expectedError);
     });
 
     it("returns 404 when user not found", async () => {
