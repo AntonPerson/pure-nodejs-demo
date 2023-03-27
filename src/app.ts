@@ -1,16 +1,7 @@
 import VERSION from "./version.generated.json";
+import type { ApiRoute } from "./types";
 
-type ApiRequest = {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
-};
-
-type ApiResponse = {
-  status?: number;
-  headers?: Record<string, string>;
-  message?: string | Record<string, unknown>;
-};
-
-type ApiRoute = (req?: ApiRequest) => ApiResponse;
+import { images } from "./api/images";
 
 /**
  * The application logic. Routes are defined here as functions.
@@ -21,10 +12,10 @@ export const app: { [apiPath: string]: ApiRoute } = {
    * @returns "pong!" as response object with an optional status code, headers and a message
    */
   ping() {
-    return {
+    return Promise.resolve({
       headers: { "Content-Type": "text/plain" },
       message: "pong!",
-    };
+    });
   },
 
   /**
@@ -37,11 +28,13 @@ export const app: { [apiPath: string]: ApiRoute } = {
    *    - startTimestamp: Server start timestamp
    */
   version() {
-    return {
+    return Promise.resolve({
       message: {
         node: process.versions.node,
         ...VERSION,
       },
-    };
+    });
   },
+
+  images,
 };

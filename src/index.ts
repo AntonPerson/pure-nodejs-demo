@@ -1,4 +1,5 @@
 import http from "node:http";
+import { parse } from "node:url";
 import { app } from "./app";
 
 const PORT = process.env.PORT || 8040;
@@ -14,27 +15,31 @@ const requestListener: http.RequestListener<
   typeof http.IncomingMessage,
   typeof http.ServerResponse
 > = (req, res) => {
-  const route = req.url?.split("/")[1];
+  // Parse the URL and query parameters
+  const parsedUrl = parse(req.url || "", true);
+  const route = parsedUrl.pathname?.split("/")[1];
 
   if (route && app[route] && req.method === "GET") {
     // Call the route function and get the response
-    const result = app[route]({ method: req.method });
-
-    // Headers and status
-    res.writeHead(
-      result.status || 200,
-      result.headers || { "Content-Type": "application/json" }
+    app[route]({ method: req.method, query: parsedUrl.query }).then(
+      (result) => {
+        // Headers and status
+        res.writeHead(
+          result.status || 200,
+          result.headers || { "Content-Type": "application/json" }
+        );
+        // Body of the response
+        if (result.message) {
+          res.write(
+            typeof result.message === "string"
+              ? result.message
+              : JSON.stringify(result.message)
+          );
+        }
+        // End and send the response
+        res.end();
+      }
     );
-    // Body of the response
-    if (result.message) {
-      res.write(
-        typeof result.message === "string"
-          ? result.message
-          : JSON.stringify(result.message)
-      );
-    }
-    // End and send the response
-    res.end();
   } else {
     // If no suitable route could be found,
     // return a 404 response with a JSON body
