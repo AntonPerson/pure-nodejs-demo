@@ -1,41 +1,6 @@
-import { ApiRequest, ApiResponse } from "../types";
+import { ApiRequest, ApiResponse } from "../models";
 import { fetchData, handleExternalError, ExternalApiError } from "../utils";
-
-export type Address = {
-  street: string;
-  suite: string;
-  city: string;
-  zipcode: string;
-  geo: {
-    lat: string;
-    lng: string;
-  };
-};
-
-export type Company = {
-  name: string;
-  catchPhrase: string;
-  bs: string;
-};
-
-export type User = {
-  id: number;
-  name: string;
-  username: string;
-  email: string;
-  address: Address;
-  phone: string;
-  website: string;
-  company: Company;
-};
-
-export type Post = {
-  userId: number;
-  id: number;
-  title: string;
-  body: string;
-};
-
+import type { User, Post } from "../models";
 /**
  * Fetches and aggregates user and post data from external APIs.
  *

@@ -1,20 +1,9 @@
-import type { ApiRequest, ApiResponse, ApiRoute } from "../types";
+import type { ApiRequest, ApiResponse, ApiRoute, Image } from "../models";
 import { paginate, fetchData } from "../utils";
 import {
   ExternalApiError,
   handleExternalError,
 } from "../utils/handleExternalError";
-
-/**
- * The Image type defines the structure of the image object fetched from an external API.
- */
-export type Image = {
-  albumId: number;
-  id: number;
-  title: string;
-  url: string;
-  thumbnailUrl: string;
-};
 
 /**
  * The images function fetches a list of items from an external API and returns

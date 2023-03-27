@@ -1,8 +1,8 @@
 import VERSION from "./version.generated.json";
-import type { ApiRoute } from "./types";
+import type { ApiRoute } from "./models";
 
-import { images } from "./api/images";
-import { profile, Nicholas } from "./api/profile";
+import { images } from "./routes/images";
+import { profile, Nicholas } from "./routes/profile";
 
 /**
  * The application logic. Routes are defined here as functions.
