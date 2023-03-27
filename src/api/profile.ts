@@ -1,10 +1,5 @@
 import { ApiRequest, ApiResponse } from "../types";
-import { fetchData } from "../utils";
-import {
-  handleExternalError,
-  unwrapError,
-  wrapError,
-} from "../utils/handleExternalError";
+import { fetchData, handleExternalError, ExternalApiError } from "../utils";
 
 export type Address = {
   street: string;
@@ -62,63 +57,57 @@ export function fetchAndAggregate(
       };
     }
 
-    try {
-      // Fetch the data from the external API
-      // Note that we use Promise.all to fetch both users and posts in parallel
-      // and fail fast if either of the requests fail.
-      // An alternative would be to use Promise.allSettled and return an error
-      // if either of the requests fail.
-      // Here we assume that both requests are equally important and both needed for this feature.
-      const [allUsers, allPosts] = await Promise.all([
-        fetchData<User[]>(urlUsers).catch(wrapError("users", urlUsers)),
-        fetchData<Post[]>(urlPosts).catch(wrapError("posts", urlPosts)),
-      ]);
-      if (!Array.isArray(allUsers) || !Array.isArray(allPosts)) {
-        return {
-          status: 500,
-          message: {
-            type: "ERROR",
-            error: `Failed to fetch data from external API. Expected an array for ${[
-              Array.isArray(allUsers) ? "users" : "",
-              Array.isArray(allPosts) ? "posts" : "",
-            ]}.`,
-            solution: "Try again later or update the configuration.",
-          },
-        };
-      }
+    // Fetch the data from the external API
+    const results = await Promise.allSettled([
+      fetchData<User[]>(urlUsers),
+      fetchData<Post[]>(urlPosts),
+    ]);
 
-      const user = allUsers.find((user) => user.id === userId);
-      const posts = allPosts
-        .filter((post) => post.userId === userId)
-        .map((post) => ({ ...post, userId: undefined }));
+    const allUsers =
+      results[0].status === "fulfilled" ? results[0].value : null;
+    const allPosts =
+      results[1].status === "fulfilled" ? results[1].value : null;
 
-      if (!user) {
-        return {
-          status: 404,
-          message: {
-            type: "ERROR",
-            error: "User not found",
-            solution: "Try a different userId",
-          },
-        };
-      }
-      return {
-        message: {
-          type: "AGGREGATION",
-          user,
-          posts,
-        },
-      };
-    } catch (error) {
-      const { apiName, apiUrl } = unwrapError(error);
-      // Handle the external error by logging it and returning a 500 status code
+    if (!Array.isArray(allUsers) || !Array.isArray(allPosts)) {
       return handleExternalError({
         route,
         params: { userId },
-        apiName,
-        apiUrl,
-      })(error as Error);
+      })(
+        new ExternalApiError("Failed to fetch data from external API.", {
+          users:
+            results[0].status === "fulfilled"
+              ? null
+              : { error: results[0].reason.toString(), url: urlUsers },
+          posts:
+            results[1].status === "fulfilled"
+              ? null
+              : { error: results[1].reason.toString(), url: urlPosts },
+        })
+      );
     }
+
+    const user = allUsers.find((user) => user.id === userId);
+    const posts = allPosts
+      .filter((post) => post.userId === userId)
+      .map((post) => ({ ...post, userId: undefined }));
+
+    if (!user) {
+      return {
+        status: 404,
+        message: {
+          type: "ERROR",
+          error: "User not found",
+          solution: "Try a different userId",
+        },
+      };
+    }
+    return {
+      message: {
+        type: "AGGREGATION",
+        user,
+        posts,
+      },
+    };
   };
 }
 

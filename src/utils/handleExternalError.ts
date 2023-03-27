@@ -13,6 +13,8 @@ export type GenericError = {
   address?: string;
   port?: string;
   status?: number;
+
+  extra?: Record<string, unknown>;
 };
 
 /**
@@ -58,6 +60,11 @@ export function serializeErrorForLog(error: Error): GenericError {
     serializedError.stack = err.stack;
   }
 
+  // Additonal properties
+  if (err.extra) {
+    serializedError.extra = err.extra;
+  }
+
   return serializedError;
 }
 
@@ -67,8 +74,6 @@ export function serializeErrorForLog(error: Error): GenericError {
  */
 type ErrorExtension = {
   route?: string;
-  apiName?: string;
-  apiUrl?: string;
   params?: Record<string, unknown>;
 };
 
@@ -118,48 +123,8 @@ export function handleExternalError(errorExtension: ErrorExtension) {
  * This way calls to multiple external APIs can be wrapped in a try/catch block
  * and the error can be handled in a single place.
  */
-class ExternalApiError extends Error {
-  constructor(message: string, public apiName: string, public apiUrl: string) {
+export class ExternalApiError extends Error {
+  constructor(message: string, public extra: Record<string, unknown>) {
     super(message);
   }
-}
-
-/**
- * A higher-order function that wraps a given error with an ExternalApiError object,
- * adding the provided API name and URL to the error.
- *
- * @param apiName The name of the external API.
- * @param apiUrl The URL of the external API.
- * @returns A function that takes an error and throws it as an ExternalApiError.
- */
-export function wrapError(apiName: string, apiUrl: string) {
-  return <E extends Error>(error: E) => {
-    throw new ExternalApiError(error.message, apiName, apiUrl);
-  };
-}
-
-/**
- * The unwrapError function takes an error object and extracts relevant information
- * from ExternalApiError, such as the name and url of the external API.
- *
- * @param error An error object, which can be an instance of ExternalApiError, Error, or any unknown error.
- * @returns An object containing the extracted API name, API URL, and error message.
- */
-export function unwrapError(error: unknown): {
-  apiName: string;
-  apiUrl: string;
-  message: string;
-} {
-  if (error instanceof ExternalApiError) {
-    return {
-      message: error.message,
-      apiName: error.apiName,
-      apiUrl: error.apiUrl,
-    };
-  }
-  return {
-    message: error instanceof Error ? error.message : "Unknown error message",
-    apiName: "unknown",
-    apiUrl: "unknown",
-  };
 }

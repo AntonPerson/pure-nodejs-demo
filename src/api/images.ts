@@ -1,6 +1,9 @@
 import type { ApiRequest, ApiResponse, ApiRoute } from "../types";
 import { paginate, fetchData } from "../utils";
-import { handleExternalError } from "../utils/handleExternalError";
+import {
+  ExternalApiError,
+  handleExternalError,
+} from "../utils/handleExternalError";
 
 /**
  * The Image type defines the structure of the image object fetched from an external API.
@@ -53,9 +56,14 @@ export function fetchAndPaginate(route: string, url: string): ApiRoute {
       return handleExternalError({
         route,
         params: { offset, size },
-        apiName: "images",
-        apiUrl: url,
-      })(error as Error);
+      })(
+        new ExternalApiError("Failed to fetch data from external API.", {
+          images: {
+            error: (error as Error).toString(),
+            url,
+          },
+        })
+      );
     }
   };
 }
