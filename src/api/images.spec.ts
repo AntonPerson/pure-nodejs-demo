@@ -32,6 +32,7 @@ describe("images", async () => {
     expect(result).toEqual({
       status: 400,
       message: {
+        type: "ERROR",
         error: "Invalid query parameters.",
         solution: expect.any(String),
       },
@@ -43,6 +44,7 @@ describe("images", async () => {
     expect(result).toEqual({
       status: 400,
       message: {
+        type: "ERROR",
         error: "Invalid query parameters.",
         solution: expect.any(String),
       },
@@ -59,6 +61,7 @@ describe("images", async () => {
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
       message: {
+        type: "PAGINATION",
         data: [
           {
             albumId: 1,
@@ -90,6 +93,7 @@ describe("images", async () => {
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
       message: {
+        type: "PAGINATION",
         data: mockImages.slice(0, 10),
         remaining: 10,
       },
@@ -107,6 +111,7 @@ describe("images", async () => {
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
       message: {
+        type: "PAGINATION",
         data: { foo: "bar" },
         remaining: 0,
       },
@@ -124,6 +129,7 @@ describe("images", async () => {
     // Then we make sure that the function returns the correct data
     expect(result).toEqual({
       message: {
+        type: "PAGINATION",
         data: mockImages.slice(0, 10),
         remaining: 10,
       },
@@ -155,9 +161,12 @@ describe("images", async () => {
     expect(result).toEqual({
       status: 500,
       message: {
-        // In production mode the response only shows errorId and solution, no real error.
+        // In production mode the response only shows error name, errorId and solution, no internals like stack.
         type: "ERROR",
-        solution: expect.any(String),
+        error: "Failed to fetch data from external API. (Error)",
+        solution: expect.stringContaining(
+          "Try again later or contact support."
+        ),
         errorId: expect.any(String),
       },
     });

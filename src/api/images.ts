@@ -33,6 +33,7 @@ export function fetchAndPaginate(route: string, url: string): ApiRoute {
       return {
         status: 400,
         message: {
+          type: "ERROR",
           error: "Invalid query parameters.",
           solution:
             "Need something like ?size=10&offset=0, " +

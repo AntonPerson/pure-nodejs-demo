@@ -43,27 +43,68 @@ export type Post = {
 
 export function fetchAndAggregate(
   route: string,
+  getUserId: (req?: ApiRequest) => number,
   urlUsers: string,
   urlPosts: string
 ) {
   return async (req?: ApiRequest): Promise<ApiResponse> => {
-    // Extract the query parameters
-    const query = (req?.query as { id: string }) ?? {};
-    const userId = parseInt(query.id ?? "8", 10);
+    const userId = getUserId(req);
+    if (userId === undefined || Number.isNaN(userId)) {
+      return {
+        status: 400,
+        message: {
+          type: "ERROR",
+          error: "Invalid query parameters.",
+          solution:
+            "Need something like ?userId=1, " +
+            "where userId is the id of the user to fetch.",
+        },
+      };
+    }
 
     try {
       // Fetch the data from the external API
+      // Note that we use Promise.all to fetch both users and posts in parallel
+      // and fail fast if either of the requests fail.
+      // An alternative would be to use Promise.allSettled and return an error
+      // if either of the requests fail.
+      // Here we assume that both requests are equally important and both needed for this feature.
       const [allUsers, allPosts] = await Promise.all([
         fetchData<User[]>(urlUsers).catch(wrapError("users", urlUsers)),
         fetchData<Post[]>(urlPosts).catch(wrapError("posts", urlPosts)),
       ]);
+      if (!Array.isArray(allUsers) || !Array.isArray(allPosts)) {
+        return {
+          status: 500,
+          message: {
+            type: "ERROR",
+            error: `Failed to fetch data from external API. Expected an array for ${[
+              Array.isArray(allUsers) ? "users" : "",
+              Array.isArray(allPosts) ? "posts" : "",
+            ]}.`,
+            solution: "Try again later or update the configuration.",
+          },
+        };
+      }
+
       const user = allUsers.find((user) => user.id === userId);
       const posts = allPosts
         .filter((post) => post.userId === userId)
         .map((post) => ({ ...post, userId: undefined }));
 
+      if (!user) {
+        return {
+          status: 404,
+          message: {
+            type: "ERROR",
+            error: "User not found",
+            solution: "Try a different userId",
+          },
+        };
+      }
       return {
         message: {
+          type: "AGGREGATION",
           user,
           posts,
         },
@@ -83,11 +124,13 @@ export function fetchAndAggregate(
 
 export const profile = fetchAndAggregate(
   "/profile",
+  (req) => parseInt(req?.query?.userId as string, 10),
   "https://jsonplaceholder.typicode.com/users",
   "https://jsonplaceholder.typicode.com/posts"
 );
 export const Nicholas = fetchAndAggregate(
   "/Nicholas",
+  () => 8,
   "https://jsonplaceholder.typicode.com/users",
   "https://jsonplaceholder.typicode.com/posts"
 );

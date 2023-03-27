@@ -2,7 +2,6 @@
  * A type representing a generic error object, containing all relevant error properties.
  */
 export type GenericError = {
-  type: "ERROR";
   errorId: string;
   name: string;
   message: string;
@@ -27,7 +26,6 @@ export function serializeErrorForLog(error: Error): GenericError {
   const errorId = Math.random().toString(36).substring(2, 9);
 
   const serializedError: GenericError = {
-    type: "ERROR",
     errorId,
     name: error.name,
     message: error.message,
@@ -87,6 +85,8 @@ type ErrorExtension = {
 export function handleExternalError(errorExtension: ErrorExtension) {
   return <E extends Error>(error: E) => {
     const { status, ...serializedError } = {
+      type: "ERROR",
+      error: "External API error.",
       ...errorExtension,
       ...serializeErrorForLog(error),
     };
@@ -97,13 +97,17 @@ export function handleExternalError(errorExtension: ErrorExtension) {
         status: status || 500,
         message: {
           type: "ERROR",
+          error: `Failed to fetch data from external API. (${serializedError.name})`,
           solution: `Try again later or contact support. (Error ID: ${serializedError.errorId})`,
           errorId: serializedError.errorId,
         },
       };
     }
 
-    return { status: status || 500, message: serializedError };
+    return {
+      status: status || 500,
+      message: serializedError,
+    };
   };
 }
 
