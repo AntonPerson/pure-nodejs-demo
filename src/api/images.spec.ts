@@ -149,14 +149,16 @@ describe("images", async () => {
     process.env.NODE_ENV = "production";
     const result = await images();
 
-    const errorLogEntry = errorLog.mock.calls[0][0];
-    expect(JSON.parse(errorLogEntry), "log").toEqual(
-      expect.objectContaining({
-        type: "ERROR",
-        message: "Something went wrong",
-        errorId: expect.any(String),
-      })
-    );
+    const errorLogEntry = JSON.parse(errorLog.mock.calls[0][0]);
+    expect(errorLogEntry, "errorLogEntry").toContain({
+      type: "ERROR",
+      message: "Failed to fetch data from external API.",
+    });
+    // The log always shows the real error.
+    expect(errorLogEntry.extra.images, "errorLogEntry.extra.images").toContain({
+      error: "Error: Something went wrong",
+      url: "https://jsonplaceholder.typicode.com/photos",
+    });
 
     expect(result).toEqual({
       status: 500,
@@ -178,19 +180,27 @@ describe("images", async () => {
 
     const result = await images();
 
-    const errorLogEntry = errorLog.mock.calls[0][0];
-    expect(JSON.parse(errorLogEntry), "log").toEqual(
-      expect.objectContaining({
-        type: "ERROR",
-        message: "Something went wrong",
-        errorId: expect.any(String),
-      })
-    );
+    const errorLogEntry = JSON.parse(errorLog.mock.calls[0][0]);
+    expect(errorLogEntry, "errorLogEntry").toContain({
+      type: "ERROR",
+      message: "Failed to fetch data from external API.",
+    });
+    // The log always shows the real error.
+    expect(errorLogEntry.extra.images, "errorLogEntry.extra.images").toContain({
+      error: "Error: Something went wrong",
+      url: "https://jsonplaceholder.typicode.com/photos",
+    });
     expect(result, "api response").toEqual({
       status: 500,
       message: expect.objectContaining({
+        message: "Failed to fetch data from external API.",
         // In development mode the response shows the real error.
-        message: "Something went wrong",
+        extra: {
+          images: {
+            error: "Error: Something went wrong",
+            url: "https://jsonplaceholder.typicode.com/photos",
+          },
+        },
       }),
     });
   });
