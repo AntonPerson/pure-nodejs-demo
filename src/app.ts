@@ -3,6 +3,7 @@ import type { ApiRoute } from "./types";
 
 import { images } from "./routes/images";
 import { profile, Nicholas } from "./routes/profile";
+import { company, Romaguera } from "./routes/company";
 
 /**
  * The application logic. Routes are defined here as functions.
@@ -41,4 +42,7 @@ export const app: { [apiPath: string]: ApiRoute } = {
 
   profile,
   Nicholas,
+
+  company,
+  Romaguera,
 };

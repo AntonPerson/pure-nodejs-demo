@@ -142,3 +142,14 @@ export class ExternalApiError extends Error {
     super(message);
   }
 }
+
+/**
+ * A class representing a user input validation error, containing a helpful solution.
+ */
+export class ValidationError extends Error {
+  public status = 400;
+  constructor(public solution: string) {
+    super("Invalid input parameters.");
+    this.name = "ValidationError";
+  }
+}

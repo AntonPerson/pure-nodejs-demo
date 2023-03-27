@@ -4,6 +4,7 @@ import { app } from "./app";
 import { handleExternalError } from "./utils";
 
 const PORT = process.env.PORT || 8040;
+const DEFAULT_HEADERS = { "Content-Type": "application/json;charset=utf-8" };
 
 /**
  * Create a request listener to handle requests.
@@ -25,10 +26,7 @@ const requestListener: http.RequestListener<
     app[route]({ method: req.method, query: parsedUrl.query })
       .then((result) => {
         // Headers and status
-        res.writeHead(
-          result.status || 200,
-          result.headers || { "Content-Type": "application/json" }
-        );
+        res.writeHead(result.status || 200, result.headers || DEFAULT_HEADERS);
         // Body of the response
         if (result.body) {
           res.write(
@@ -47,7 +45,7 @@ const requestListener: http.RequestListener<
           params: parsedUrl.query,
         })(error);
         // Headers and status
-        res.writeHead(status, { "Content-Type": "application/json" });
+        res.writeHead(status, DEFAULT_HEADERS);
         // Body of the response
         res.write(JSON.stringify(body));
         // End and send the response
@@ -56,7 +54,7 @@ const requestListener: http.RequestListener<
   } else {
     // If no suitable route could be found,
     // return a 404 response with a JSON body
-    res.writeHead(404, { "Content-Type": "application/json" });
+    res.writeHead(404, DEFAULT_HEADERS);
     res.end(JSON.stringify({ message: "Route not found" }));
   }
 };
