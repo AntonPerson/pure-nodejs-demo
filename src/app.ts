@@ -1,5 +1,5 @@
 import VERSION from "./version.generated.json";
-import type { ApiRoute } from "./models";
+import type { ApiRoute } from "./types";
 
 import { images } from "./routes/images";
 import { profile, Nicholas } from "./routes/profile";

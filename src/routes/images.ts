@@ -1,4 +1,4 @@
-import type { ApiRequest, ApiResponse, ApiRoute, Image } from "../models";
+import type { ApiRequest, ApiResponse, ApiRoute, Image } from "../types";
 import { paginate, fetchData } from "../utils";
 import {
   ExternalApiError,

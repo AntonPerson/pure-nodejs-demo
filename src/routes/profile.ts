@@ -1,6 +1,6 @@
-import { ApiRequest, ApiResponse } from "../models";
+import { ApiRequest, ApiResponse } from "../types";
 import { fetchData, handleExternalError, ExternalApiError } from "../utils";
-import type { User, Post } from "../models";
+import type { User, Post } from "../types";
 /**
  * Fetches and aggregates user and post data from external APIs.
  *

@@ -1,6 +1,6 @@
 import { expect, it, describe, beforeEach, vi } from "vitest";
 
-import type { User, Post } from "../models";
+import type { User, Post } from "../types";
 
 // Mock data for testing
 const mockUsers: User[] = [

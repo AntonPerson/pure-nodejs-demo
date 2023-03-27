@@ -1,6 +1,6 @@
 import { expect, it, describe, afterEach, beforeEach, vi } from "vitest";
 
-import type { Image } from "../models";
+import type { Image } from "../types";
 
 // Mock the fetchData function to return a predictable list of images
 const mockImages: Image[] = Array.from({ length: 20 }, (_, index) => ({
