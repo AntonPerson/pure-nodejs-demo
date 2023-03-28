@@ -1,8 +1,8 @@
-import { postService, ChildService } from "../services";
+import { postService, Contains } from "../services";
 import { ApiRequest, ApiResponse, Post, User } from "../types";
 import { ValidationError, handleExternalError } from "../utils";
 
-export function validateCompanyParameters(req?: ApiRequest) {
+export function companyNameInputValidator(req?: ApiRequest) {
   if (!req?.query?.companyName || typeof req?.query?.companyName !== "string") {
     throw new ValidationError(
       "Need something like ?companyName=Romaguera, " +
@@ -19,16 +19,16 @@ export type CompanyQuery = {
   companyName: string;
 };
 export const companyRouteFactory = (
-  postService: ChildService<User, Post>,
-  paramValidator: (req?: ApiRequest<CompanyQuery>) => {
+  postService: Contains<User, Post>,
+  inputValidator: (req?: ApiRequest<CompanyQuery>) => {
     companyName: string;
-  } = validateCompanyParameters
+  } = companyNameInputValidator
 ) =>
   function companyRoute(req?: ApiRequest<CompanyQuery>): Promise<ApiResponse> {
-    const { companyName } = paramValidator(req);
+    const { companyName } = inputValidator(req);
 
     return postService
-      .filterByParent((user) => user.company?.name?.includes(companyName))
+      .contains((user) => user.company?.name?.includes(companyName))
       .then((data) => ({
         body: {
           type: "FILTER",

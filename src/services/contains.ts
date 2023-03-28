@@ -1,11 +1,11 @@
 import { Data, ApiRepository } from "../data";
 
-export interface ChildService<P, C> {
-  filterByParent(predicate: (parent: P) => boolean): Promise<C[]>;
+export interface Contains<P, C> {
+  contains(predicate: (parent: P) => boolean): Promise<C[]>;
 }
 
-export class ChildDataService<ParentData extends Data, ChildData extends Data>
-  implements ChildService<ParentData, ChildData>
+export class ContainsRelation<ParentData extends Data, ChildData extends Data>
+  implements Contains<ParentData, ChildData>
 {
   constructor(
     private readonly parentRepo: ApiRepository<ParentData>,
@@ -14,7 +14,7 @@ export class ChildDataService<ParentData extends Data, ChildData extends Data>
   ) {}
 
   // predicate: user => user.company?.name?.includes(companyName)
-  async filterByParent(
+  async contains(
     predicate: (parent: ParentData) => boolean
   ): Promise<ChildData[]> {
     const [parentData, childData] = await Promise.all([

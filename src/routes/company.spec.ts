@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { companyRouteFactory, validateCompanyParameters } from "./company";
+import { companyRouteFactory, companyNameInputValidator } from "./company";
 import { UserRepository } from "../data/user.mock";
 import { PostRepository } from "../data/post.mock";
 import { PostService } from "../services";
@@ -11,7 +11,7 @@ describe("company", () => {
   );
   const companyRoute = companyRouteFactory(
     mockPostService,
-    validateCompanyParameters
+    companyNameInputValidator
   );
 
   it("should throw an error when no company is provided", () => {

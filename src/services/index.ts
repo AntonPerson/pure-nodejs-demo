@@ -6,5 +6,5 @@ const postRepo = new PostRepository();
 
 export const postService = new PostService(userRepo, postRepo);
 
-export * from "./child";
+export * from "./contains";
 export * from "./post";
