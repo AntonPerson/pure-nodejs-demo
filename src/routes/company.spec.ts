@@ -3,6 +3,7 @@ import { companyRouteFactory, companyNameInputValidator } from "./company";
 import { UserRepository } from "../data/user.mock";
 import { PostRepository } from "../data/post.mock";
 import { createUserService } from "../services";
+import { Post } from "../types";
 
 describe("company", () => {
   const mockUserService = createUserService(
@@ -29,23 +30,10 @@ describe("company", () => {
       query: { companyName: "Romaguera" },
     });
     expect(result.body?.data?.length).toBeGreaterThan(0);
-    ({
-      type: "FILTER",
-      data: [
-        {
-          userId: 1,
-          id: 8,
-          title: "dolorem dolore est ipsam",
-          body: "dignissimos aperiam dolorem qui eum\nfacilis quibusdam animi sint suscipit qui sint possimus cum\nquaerat magni maiores excepturi\nipsam ut commodi dolor voluptatum modi aut vitae",
-        },
-        {
-          userId: 1,
-          id: 9,
-          title: "nesciunt iure omnis dolorem tempora et accusantium",
-          body: "consectetur animi nesciunt iure dolore\nenim quia ad\nveniam autem ut quam aut nobis\net est aut quod aut provident voluptas autem voluptas",
-        },
-      ],
-    });
+    // User with company name "Romaguera" has id 1
+    expect(
+      result.body?.data?.find((post: Post) => post.userId !== 1)
+    ).toBeFalsy();
   });
 
   it("should return an empty list of posts when the company can not be found", async () => {
