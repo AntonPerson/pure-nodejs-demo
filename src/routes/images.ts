@@ -1,9 +1,12 @@
-import type { ApiRequest, ApiResponse, ApiRoute, Image } from "../types";
+import type {
+  ApiBody,
+  ApiRequest,
+  ApiResponse,
+  ApiRoute,
+  Image,
+} from "../types";
 import { paginate, fetchData } from "../utils";
-import {
-  ExternalApiError,
-  handleExternalError,
-} from "../utils/handleExternalError";
+import { ExternalApiError, handleError } from "../utils/handleError";
 
 /**
  * The images function fetches a list of items from an external API and returns
@@ -14,7 +17,9 @@ import {
  * @returns An api route handler function.
  */
 export function fetchAndPaginate(route: string, url: string): ApiRoute {
-  return async (req?: ApiRequest): Promise<ApiResponse> => {
+  return async (
+    req?: ApiRequest
+  ): Promise<ApiResponse<ApiBody<Image[] | Record<string, unknown>>>> => {
     // Extract the query parameters
     const query = (req?.query as { size: string; offset: string }) ?? {};
     const size = parseInt(query.size ?? "10", 10);
@@ -26,11 +31,13 @@ export function fetchAndPaginate(route: string, url: string): ApiRoute {
         status: 400,
         body: {
           type: "ERROR",
-          message: "Invalid query parameters.",
-          solution:
-            "Need something like ?size=10&offset=0, " +
-            "where offset is the page number " +
-            "and size is the number of items per page.",
+          error: {
+            message: "Invalid query parameters.",
+            solution:
+              "Need something like ?size=10&offset=0, " +
+              "where offset is the page number " +
+              "and size is the number of items per page.",
+          },
         },
       };
     }
@@ -39,10 +46,15 @@ export function fetchAndPaginate(route: string, url: string): ApiRoute {
       // Fetch the data from the external API
       const allData = await fetchData<Image[]>(url);
       // Return the paginated subset of the data
-      return paginate(allData, size, offset);
+      return {
+        body: {
+          type: "PAGINATION",
+          ...paginate(allData, size, offset),
+        },
+      };
     } catch (error) {
       // Handle the external error by logging it and returning a 500 status code
-      return handleExternalError({
+      return handleError({
         route,
         params: { offset, size },
       })(

@@ -3,10 +3,22 @@ export type ApiRequest<Q = any> = {
   query?: Q;
 };
 
-export type ApiResponse = {
+export type ApiResponse<B = string | Record<string, unknown>> = {
   status?: number;
   headers?: Record<string, string>;
-  body?: string | Record<string, unknown>;
+  body?: B;
+};
+
+export type ApiBody<T> = {
+  type: string | "ERROR";
+  // SUCCESS
+  data?: T;
+  // ERROR
+  error?: {
+    message?: string;
+    solution?: string;
+    errorId?: string;
+  };
 };
 
 export type ApiRoute = (req?: ApiRequest) => Promise<ApiResponse>;

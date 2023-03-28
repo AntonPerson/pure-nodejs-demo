@@ -91,41 +91,38 @@ type ErrorExtension = {
  * @param errorExtension An object containing extended properties of the Error object.
  * @returns A function that takes an Error object and returns a formatted error response.
  */
-export function handleExternalError(errorExtension: ErrorExtension) {
+export function handleError(errorExtension: ErrorExtension) {
   return <E extends Error>(error: E) => {
-    const { status, ...serializedError } = {
-      type: "ERROR",
+    const { status, solution, ...serializedError } = {
       ...errorExtension,
       ...serializeErrorForLog(error),
     };
-    console.error(JSON.stringify(serializedError, null, 2), ",");
+    console.error(JSON.stringify(serializedError), ",");
 
     if (process.env.NODE_ENV === "production") {
-      if (serializedError.name === "ValidationError") {
-        return {
-          status: status || 400,
-          body: {
-            type: "ERROR",
-            message: serializedError.message,
-            solution: serializedError.solution,
-            errorId: serializedError.errorId,
-          },
-        };
-      }
       return {
         status: status || 500,
         body: {
           type: "ERROR",
-          message: `${serializedError.name}: Failed to fetch data from external API.`,
-          solution: `Try again later or contact support. (Error ID: ${serializedError.errorId})`,
-          errorId: serializedError.errorId,
+          error: {
+            message:
+              serializedError.message ||
+              `${serializedError.name}: Failed to fetch data from external API.`,
+            solution:
+              solution ||
+              `Try again later or contact support. (Error ID: ${serializedError.errorId})`,
+            errorId: serializedError.errorId,
+          },
         },
       };
     }
 
     return {
       status: status || 500,
-      body: serializedError,
+      body: {
+        type: "ERROR",
+        error: serializedError,
+      },
     };
   };
 }

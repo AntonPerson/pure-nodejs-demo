@@ -49,19 +49,21 @@ describe("profile", () => {
       expect(result).toEqual({
         body: {
           type: "AGGREGATION",
-          user: mockUsers[1],
-          posts: [
-            {
-              id: 11,
-              title: "et ea vero quia laudantium autem",
-              body: "delectus reiciendis molestiae occaecati non minima eveniet qui voluptatibus\naccusamus in eum beatae sit\nvel qui neque voluptates ut commodi qui incidunt\nut animi commodi",
-            },
-            {
-              id: 12,
-              title: "in quibusdam tempore odit est dolorem",
-              body: "itaque id aut magnam\npraesentium quia et ea odit et ea voluptas et\nsapiente quia nihil amet occaecati quia id voluptatem\nincidunt ea est distinctio odio",
-            },
-          ],
+          data: {
+            user: mockUsers[1],
+            posts: [
+              {
+                id: 11,
+                title: "et ea vero quia laudantium autem",
+                body: "delectus reiciendis molestiae occaecati non minima eveniet qui voluptatibus\naccusamus in eum beatae sit\nvel qui neque voluptates ut commodi qui incidunt\nut animi commodi",
+              },
+              {
+                id: 12,
+                title: "in quibusdam tempore odit est dolorem",
+                body: "itaque id aut magnam\npraesentium quia et ea odit et ea voluptas et\nsapiente quia nihil amet occaecati quia id voluptatem\nincidunt ea est distinctio odio",
+              },
+            ],
+          },
         },
       });
     });
@@ -84,7 +86,6 @@ describe("profile", () => {
       const result = await fetchAndAggregateTest();
 
       const expectedError = expect.objectContaining({
-        type: "ERROR",
         message: "Failed to fetch data from external API.",
         extra: {
           users: {
@@ -101,7 +102,7 @@ describe("profile", () => {
       expect(fetchData).toHaveBeenCalled();
       expect(result).toEqual({
         status: 500,
-        body: expectedError,
+        body: { type: "ERROR", error: expectedError },
       });
       const errorLogEntry = JSON.parse(errorLog.mock.calls[0][0]);
       expect(errorLogEntry).toEqual(expectedError);
@@ -120,8 +121,10 @@ describe("profile", () => {
         status: 404,
         body: {
           type: "ERROR",
-          message: "User not found",
-          solution: "Try a different userId",
+          error: {
+            message: "User not found",
+            solution: "Try a different userId",
+          },
         },
       });
     });
@@ -139,10 +142,12 @@ describe("profile", () => {
         status: 400,
         body: {
           type: "ERROR",
-          message: "Invalid query parameters.",
-          solution:
-            "Need something like ?userId=1, " +
-            "where userId is the id of the user to fetch.",
+          error: {
+            message: "Invalid query parameters.",
+            solution:
+              "Need something like ?userId=1, " +
+              "where userId is the id of the user to fetch.",
+          },
         },
       });
     });

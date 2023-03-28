@@ -1,6 +1,6 @@
 import { userService, ContainsRelation, UserService } from "../services";
-import { ApiRequest, ApiResponse, Post, User } from "../types";
-import { ValidationError, handleExternalError } from "../utils";
+import { ApiBody, ApiRequest, ApiResponse, Post, User } from "../types";
+import { ValidationError, handleError } from "../utils";
 
 export function companyNameInputValidator(req?: ApiRequest) {
   if (!req?.query?.companyName || typeof req?.query?.companyName !== "string") {
@@ -24,7 +24,9 @@ export const companyRouteFactory = (
     companyName: string;
   } = companyNameInputValidator
 ) =>
-  function companyRoute(req?: ApiRequest<CompanyQuery>): Promise<ApiResponse> {
+  function companyRoute(
+    req?: ApiRequest<CompanyQuery>
+  ): Promise<ApiResponse<ApiBody<Post[]>>> {
     const { companyName } = inputValidator(req);
 
     return userService
@@ -36,7 +38,7 @@ export const companyRouteFactory = (
         },
       }))
       .catch(
-        handleExternalError({
+        handleError({
           route: "company",
           params: { company: companyName },
         })

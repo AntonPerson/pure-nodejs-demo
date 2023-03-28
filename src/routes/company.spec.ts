@@ -28,7 +28,8 @@ describe("company", () => {
     const result = await companyRoute({
       query: { companyName: "Romaguera" },
     });
-    expect(result.body).toEqual({
+    expect(result.body?.data?.length).toBeGreaterThan(0);
+    ({
       type: "FILTER",
       data: [
         {
@@ -44,6 +45,16 @@ describe("company", () => {
           body: "consectetur animi nesciunt iure dolore\nenim quia ad\nveniam autem ut quam aut nobis\net est aut quod aut provident voluptas autem voluptas",
         },
       ],
+    });
+  });
+
+  it("should return an empty list of posts when the company can not be found", async () => {
+    const result = await companyRoute({
+      query: { companyName: "Not a company" },
+    });
+    expect(result.body).toEqual({
+      type: "FILTER",
+      data: [],
     });
   });
 });

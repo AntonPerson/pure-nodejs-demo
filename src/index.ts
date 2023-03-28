@@ -1,7 +1,7 @@
 import http from "node:http";
 import { parse } from "node:url";
 import { app } from "./app";
-import { handleExternalError } from "./utils";
+import { handleError } from "./utils";
 
 const PORT = process.env.PORT || 8040;
 const DEFAULT_HEADERS = { "Content-Type": "application/json;charset=utf-8" };
@@ -40,7 +40,7 @@ const requestListener: http.RequestListener<
       })
       .catch((error) => {
         // Handle the external error by logging it and returning a 500 status code
-        const { status, body } = handleExternalError({
+        const { status, body } = handleError({
           route,
           params: parsedUrl.query,
         })(error);

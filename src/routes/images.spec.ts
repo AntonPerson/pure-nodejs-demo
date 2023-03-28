@@ -33,8 +33,10 @@ describe("images", async () => {
       status: 400,
       body: {
         type: "ERROR",
-        message: "Invalid query parameters.",
-        solution: expect.any(String),
+        error: {
+          message: "Invalid query parameters.",
+          solution: expect.any(String),
+        },
       },
     });
   });
@@ -45,8 +47,10 @@ describe("images", async () => {
       status: 400,
       body: {
         type: "ERROR",
-        message: "Invalid query parameters.",
-        solution: expect.any(String),
+        error: {
+          message: "Invalid query parameters.",
+          solution: expect.any(String),
+        },
       },
     });
   });
@@ -151,7 +155,6 @@ describe("images", async () => {
 
     const errorLogEntry = JSON.parse(errorLog.mock.calls[0][0]);
     expect(errorLogEntry, "errorLogEntry").toContain({
-      type: "ERROR",
       message: "Failed to fetch data from external API.",
     });
     // The log always shows the real error.
@@ -165,11 +168,13 @@ describe("images", async () => {
       body: {
         // In production mode the response only shows error name, errorId and solution, no internals like stack.
         type: "ERROR",
-        message: "Error: Failed to fetch data from external API.",
-        solution: expect.stringContaining(
-          "Try again later or contact support."
-        ),
-        errorId: expect.any(String),
+        error: {
+          message: "Failed to fetch data from external API.",
+          solution: expect.stringContaining(
+            "Try again later or contact support."
+          ),
+          errorId: expect.any(String),
+        },
       },
     });
   });
@@ -182,7 +187,6 @@ describe("images", async () => {
 
     const errorLogEntry = JSON.parse(errorLog.mock.calls[0][0]);
     expect(errorLogEntry, "errorLogEntry").toContain({
-      type: "ERROR",
       message: "Failed to fetch data from external API.",
     });
     // The log always shows the real error.
@@ -191,12 +195,17 @@ describe("images", async () => {
       url: "https://jsonplaceholder.typicode.com/photos",
     });
     expect(result.status, "api status").toBe(500);
-    expect(result.body, "api response").toContain({
+    expect(result.body, "api response").toEqual({
       type: "ERROR",
-      message: "Failed to fetch data from external API.",
+      error: expect.objectContaining({
+        message: "Failed to fetch data from external API.",
+      }),
     });
     // In development mode the response shows the real error.
-    expect((result.body as { extra: unknown })?.extra, "extra").toEqual({
+    expect(
+      (result.body as { error: { extra: unknown } })?.error?.extra,
+      "extra"
+    ).toEqual({
       images: {
         error: "Error: Something went wrong",
         url: "https://jsonplaceholder.typicode.com/photos",

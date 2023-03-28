@@ -37,11 +37,8 @@ export function paginate<T>(
   size: number,
   offset: number
 ): {
-  body: {
-    type: "PAGINATION";
-    data: T[] | Record<string, unknown>;
-    remaining: number;
-  };
+  data: T[] | Record<string, unknown>;
+  remaining: number;
 } {
   const extracted = extractArray(allData);
   const data = Array.isArray(extracted)
@@ -52,5 +49,5 @@ export function paginate<T>(
     (Array.isArray(extracted) ? extracted.length : 0) - (offset * size + size)
   );
 
-  return { body: { type: "PAGINATION", data, remaining } };
+  return { data, remaining };
 }

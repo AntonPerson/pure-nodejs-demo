@@ -1,5 +1,5 @@
 import { ApiRequest, ApiResponse } from "../types";
-import { fetchData, handleExternalError, ExternalApiError } from "../utils";
+import { fetchData, handleError, ExternalApiError } from "../utils";
 import type { User, Post } from "../types";
 /**
  * Fetches and aggregates user and post data from external APIs.
@@ -25,10 +25,12 @@ export function fetchAndAggregate(
         status: 400,
         body: {
           type: "ERROR",
-          message: "Invalid query parameters.",
-          solution:
-            "Need something like ?userId=1, " +
-            "where userId is the id of the user to fetch.",
+          error: {
+            message: "Invalid query parameters.",
+            solution:
+              "Need something like ?userId=1, " +
+              "where userId is the id of the user to fetch.",
+          },
         },
       };
     }
@@ -47,7 +49,7 @@ export function fetchAndAggregate(
 
     // Validate the fetched data
     if (!Array.isArray(allUsers) || !Array.isArray(allPosts)) {
-      return handleExternalError({
+      return handleError({
         route,
         params: { userId },
       })(
@@ -76,8 +78,10 @@ export function fetchAndAggregate(
         status: 404,
         body: {
           type: "ERROR",
-          message: "User not found",
-          solution: "Try a different userId",
+          error: {
+            message: "User not found",
+            solution: "Try a different userId",
+          },
         },
       };
     }
@@ -86,8 +90,10 @@ export function fetchAndAggregate(
     return {
       body: {
         type: "AGGREGATION",
-        user,
-        posts,
+        data: {
+          user,
+          posts,
+        },
       },
     };
   };
