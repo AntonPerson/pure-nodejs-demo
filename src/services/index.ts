@@ -1,10 +1,10 @@
 import { PostRepository, UserRepository } from "../data";
-import { PostService } from "./post";
+import { createUserService } from "./user";
 
 const userRepo = new UserRepository();
 const postRepo = new PostRepository();
 
-export const postService = new PostService(userRepo, postRepo);
+export const userService = createUserService(userRepo, postRepo);
 
 export * from "./contains";
-export * from "./post";
+export * from "./user";

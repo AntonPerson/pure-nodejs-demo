@@ -2,15 +2,15 @@ import { expect, it, describe } from "vitest";
 import { companyRouteFactory, companyNameInputValidator } from "./company";
 import { UserRepository } from "../data/user.mock";
 import { PostRepository } from "../data/post.mock";
-import { PostService } from "../services";
+import { createUserService } from "../services";
 
 describe("company", () => {
-  const mockPostService = new PostService(
+  const mockUserService = createUserService(
     new UserRepository(),
     new PostRepository()
   );
   const companyRoute = companyRouteFactory(
-    mockPostService,
+    mockUserService,
     companyNameInputValidator
   );
 

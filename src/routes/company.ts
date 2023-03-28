@@ -1,4 +1,4 @@
-import { postService, Contains } from "../services";
+import { userService, ContainsRelation, UserService } from "../services";
 import { ApiRequest, ApiResponse, Post, User } from "../types";
 import { ValidationError, handleExternalError } from "../utils";
 
@@ -19,7 +19,7 @@ export type CompanyQuery = {
   companyName: string;
 };
 export const companyRouteFactory = (
-  postService: Contains<User, Post>,
+  userService: UserService,
   inputValidator: (req?: ApiRequest<CompanyQuery>) => {
     companyName: string;
   } = companyNameInputValidator
@@ -27,8 +27,8 @@ export const companyRouteFactory = (
   function companyRoute(req?: ApiRequest<CompanyQuery>): Promise<ApiResponse> {
     const { companyName } = inputValidator(req);
 
-    return postService
-      .contains((user) => user.company?.name?.includes(companyName))
+    return userService
+      .filterPosts((user) => user.company?.name?.includes(companyName))
       .then((data) => ({
         body: {
           type: "FILTER",
@@ -43,7 +43,7 @@ export const companyRouteFactory = (
       );
   };
 
-export const company = companyRouteFactory(postService);
-export const Romaguera = companyRouteFactory(postService, () => ({
+export const company = companyRouteFactory(userService);
+export const Romaguera = companyRouteFactory(userService, () => ({
   companyName: "Romaguera",
 }));
