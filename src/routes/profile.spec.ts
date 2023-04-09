@@ -1,83 +1,7 @@
 import { expect, it, describe, beforeEach, vi } from "vitest";
 
-import type { User, Post } from "./profile";
-
-// Mock data for testing
-const mockUsers: User[] = [
-  {
-    id: 1,
-    name: "Leanne Graham",
-    username: "Bret",
-    email: "Sincere@april.biz",
-    address: {
-      street: "Kulas Light",
-      suite: "Apt. 556",
-      city: "Gwenborough",
-      zipcode: "92998-3874",
-      geo: {
-        lat: "-37.3159",
-        lng: "81.1496",
-      },
-    },
-    phone: "1-770-736-8031 x56442",
-    website: "hildegard.org",
-    company: {
-      name: "Romaguera-Crona",
-      catchPhrase: "Multi-layered client-server neural-net",
-      bs: "harness real-time e-markets",
-    },
-  },
-  {
-    id: 2,
-    name: "Ervin Howell",
-    username: "Antonette",
-    email: "Shanna@melissa.tv",
-    address: {
-      street: "Victor Plains",
-      suite: "Suite 879",
-      city: "Wisokyburgh",
-      zipcode: "90566-7771",
-      geo: {
-        lat: "-43.9509",
-        lng: "-34.4618",
-      },
-    },
-    phone: "010-692-6593 x09125",
-    website: "anastasia.net",
-    company: {
-      name: "Deckow-Crist",
-      catchPhrase: "Proactive didactic contingency",
-      bs: "synergize scalable supply-chains",
-    },
-  },
-];
-
-const mockPosts: Post[] = [
-  {
-    userId: 1,
-    id: 8,
-    title: "dolorem dolore est ipsam",
-    body: "dignissimos aperiam dolorem qui eum\nfacilis quibusdam animi sint suscipit qui sint possimus cum\nquaerat magni maiores excepturi\nipsam ut commodi dolor voluptatum modi aut vitae",
-  },
-  {
-    userId: 1,
-    id: 9,
-    title: "nesciunt iure omnis dolorem tempora et accusantium",
-    body: "consectetur animi nesciunt iure dolore\nenim quia ad\nveniam autem ut quam aut nobis\net est aut quod aut provident voluptas autem voluptas",
-  },
-  {
-    userId: 2,
-    id: 11,
-    title: "et ea vero quia laudantium autem",
-    body: "delectus reiciendis molestiae occaecati non minima eveniet qui voluptatibus\naccusamus in eum beatae sit\nvel qui neque voluptates ut commodi qui incidunt\nut animi commodi",
-  },
-  {
-    userId: 2,
-    id: 12,
-    title: "in quibusdam tempore odit est dolorem",
-    body: "itaque id aut magnam\npraesentium quia et ea odit et ea voluptas et\nsapiente quia nihil amet occaecati quia id voluptatem\nincidunt ea est distinctio odio",
-  },
-];
+import { mockPosts } from "../data/post.mock";
+import { mockUsers } from "../data/user.mock";
 
 // Mock implementation of fetchData for testing
 const fetchDataMock = <T>(url: string): Promise<T> => {
@@ -123,21 +47,23 @@ describe("profile", () => {
 
       expect(fetchData).toHaveBeenCalled();
       expect(result).toEqual({
-        message: {
+        body: {
           type: "AGGREGATION",
-          user: mockUsers[1],
-          posts: [
-            {
-              id: 11,
-              title: "et ea vero quia laudantium autem",
-              body: "delectus reiciendis molestiae occaecati non minima eveniet qui voluptatibus\naccusamus in eum beatae sit\nvel qui neque voluptates ut commodi qui incidunt\nut animi commodi",
-            },
-            {
-              id: 12,
-              title: "in quibusdam tempore odit est dolorem",
-              body: "itaque id aut magnam\npraesentium quia et ea odit et ea voluptas et\nsapiente quia nihil amet occaecati quia id voluptatem\nincidunt ea est distinctio odio",
-            },
-          ],
+          data: {
+            user: mockUsers[1],
+            posts: [
+              {
+                id: 11,
+                title: "et ea vero quia laudantium autem",
+                body: "delectus reiciendis molestiae occaecati non minima eveniet qui voluptatibus\naccusamus in eum beatae sit\nvel qui neque voluptates ut commodi qui incidunt\nut animi commodi",
+              },
+              {
+                id: 12,
+                title: "in quibusdam tempore odit est dolorem",
+                body: "itaque id aut magnam\npraesentium quia et ea odit et ea voluptas et\nsapiente quia nihil amet occaecati quia id voluptatem\nincidunt ea est distinctio odio",
+              },
+            ],
+          },
         },
       });
     });
@@ -160,8 +86,6 @@ describe("profile", () => {
       const result = await fetchAndAggregateTest();
 
       const expectedError = expect.objectContaining({
-        type: "ERROR",
-        error: "External API error.",
         message: "Failed to fetch data from external API.",
         extra: {
           users: {
@@ -178,7 +102,7 @@ describe("profile", () => {
       expect(fetchData).toHaveBeenCalled();
       expect(result).toEqual({
         status: 500,
-        message: expectedError,
+        body: { type: "ERROR", error: expectedError },
       });
       const errorLogEntry = JSON.parse(errorLog.mock.calls[0][0]);
       expect(errorLogEntry).toEqual(expectedError);
@@ -195,10 +119,12 @@ describe("profile", () => {
       const result = await fetchAndAggregateTest();
       expect(result).toEqual({
         status: 404,
-        message: {
+        body: {
           type: "ERROR",
-          error: "User not found",
-          solution: "Try a different userId",
+          error: {
+            message: "User not found",
+            solution: "Try a different userId",
+          },
         },
       });
     });
@@ -214,12 +140,14 @@ describe("profile", () => {
       const result = await fetchAndAggregateTest();
       expect(result).toEqual({
         status: 400,
-        message: {
+        body: {
           type: "ERROR",
-          error: "Invalid query parameters.",
-          solution:
-            "Need something like ?userId=1, " +
-            "where userId is the id of the user to fetch.",
+          error: {
+            message: "Invalid query parameters.",
+            solution:
+              "Need something like ?userId=1, " +
+              "where userId is the id of the user to fetch.",
+          },
         },
       });
     });

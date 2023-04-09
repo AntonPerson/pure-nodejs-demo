@@ -14,6 +14,7 @@ export type GenericError = {
   port?: string;
   status?: number;
 
+  solution?: string;
   extra?: Record<string, unknown>;
 };
 
@@ -61,6 +62,9 @@ export function serializeErrorForLog(error: Error): GenericError {
   }
 
   // Additonal properties
+  if (err.solution) {
+    serializedError.solution = err.solution;
+  }
   if (err.extra) {
     serializedError.extra = err.extra;
   }
@@ -87,31 +91,38 @@ type ErrorExtension = {
  * @param errorExtension An object containing extended properties of the Error object.
  * @returns A function that takes an Error object and returns a formatted error response.
  */
-export function handleExternalError(errorExtension: ErrorExtension) {
+export function handleError(errorExtension: ErrorExtension) {
   return <E extends Error>(error: E) => {
-    const { status, ...serializedError } = {
-      type: "ERROR",
-      error: "External API error.",
+    const { status, solution, ...serializedError } = {
       ...errorExtension,
       ...serializeErrorForLog(error),
     };
-    console.error(JSON.stringify(serializedError, null, 2), ",");
+    console.error(JSON.stringify(serializedError), ",");
 
     if (process.env.NODE_ENV === "production") {
       return {
         status: status || 500,
-        message: {
+        body: {
           type: "ERROR",
-          error: `Failed to fetch data from external API. (${serializedError.name})`,
-          solution: `Try again later or contact support. (Error ID: ${serializedError.errorId})`,
-          errorId: serializedError.errorId,
+          error: {
+            message:
+              serializedError.message ||
+              `${serializedError.name}: Failed to fetch data from external API.`,
+            solution:
+              solution ||
+              `Try again later or contact support. (Error ID: ${serializedError.errorId})`,
+            errorId: serializedError.errorId,
+          },
         },
       };
     }
 
     return {
       status: status || 500,
-      message: serializedError,
+      body: {
+        type: "ERROR",
+        error: serializedError,
+      },
     };
   };
 }
@@ -126,5 +137,16 @@ export function handleExternalError(errorExtension: ErrorExtension) {
 export class ExternalApiError extends Error {
   constructor(message: string, public extra: Record<string, unknown>) {
     super(message);
+  }
+}
+
+/**
+ * A class representing a user input validation error, containing a helpful solution.
+ */
+export class ValidationError extends Error {
+  public status = 400;
+  constructor(public solution: string) {
+    super("Invalid input parameters.");
+    this.name = "ValidationError";
   }
 }
